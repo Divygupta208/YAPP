@@ -1,38 +1,26 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const Signup = () => {
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-  });
-  const [loading, setLoading] = useState(false);
+  const nameRef = useRef();
+  const emailRef = useRef();
+  const phoneRef = useRef();
+  const passwordRef = useRef();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { username, email, password } = formData;
-
-    // Basic validation
-    if (!username || !email || !password) {
-      toast.error("All fields are required!");
-      return;
-    }
+    const username = nameRef.current.value;
+    const email = emailRef.current.value;
+    const phoneno = phoneRef.current.value;
+    const password = passwordRef.current.value;
 
     try {
       setLoading(true);
-      // Your API call to register user
-      // Example: await axios.post('/api/signup', formData);
+
       toast.success("Signup successful!");
     } catch (error) {
       toast.error("Signup failed!");
@@ -80,8 +68,7 @@ const Signup = () => {
               type="text"
               name="username"
               id="username"
-              value={formData.username}
-              onChange={handleChange}
+              ref={nameRef}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition duration-300"
               placeholder="Enter your username"
               required
@@ -101,8 +88,26 @@ const Signup = () => {
               type="email"
               name="email"
               id="email"
-              value={formData.email}
-              onChange={handleChange}
+              ref={emailRef}
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition duration-300"
+              placeholder="Enter your email"
+              required
+              whileFocus={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            />
+          </div>
+          <div className="">
+            <label
+              className="block text-sm font-medium text-gray-600 mb-2"
+              htmlFor="phoneno"
+            >
+              Phone Number
+            </label>
+            <motion.input
+              type=""
+              name="phoneno"
+              id="phoneno"
+              ref={phoneRef}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition duration-300"
               placeholder="Enter your email"
               required
@@ -122,8 +127,7 @@ const Signup = () => {
               type="password"
               name="password"
               id="password"
-              value={formData.password}
-              onChange={handleChange}
+              ref={passwordRef}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition duration-300"
               placeholder="Enter your password"
               required
