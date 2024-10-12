@@ -13,15 +13,38 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const username = nameRef.current.value;
     const email = emailRef.current.value;
     const phoneno = phoneRef.current.value;
     const password = passwordRef.current.value;
 
+    const authData = {
+      username,
+      email,
+      phoneno,
+      password,
+    };
+
     try {
       setLoading(true);
 
-      toast.success("Signup successful!");
+      const response = await fetch("http://localhost:3000/api/user/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(authData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data);
+        toast.success("Signup successful!");
+      } else {
+        const errorData = await response.json();
+        toast.error(`Signup failed: ${errorData.message}`);
+      }
     } catch (error) {
       toast.error("Signup failed!");
     } finally {

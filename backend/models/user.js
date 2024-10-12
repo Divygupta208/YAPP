@@ -9,7 +9,7 @@ const User = sequelize.define("user", {
     allowNull: false,
     primaryKey: true,
   },
-  name: {
+  username: {
     type: Sequelize.STRING,
     allowNull: false,
   },
@@ -22,7 +22,7 @@ const User = sequelize.define("user", {
     allowNull: false,
   },
   phoneno: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     allowNull: false,
   },
 });

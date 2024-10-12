@@ -6,7 +6,7 @@ exports.postAddUser = async (req, res, next) => {
   const t = await sequelize.transaction();
 
   try {
-    const { name, email, phoneno, password } = req.body;
+    const { username, email, phoneno, password } = req.body;
 
     const existingUser = await User.findOne(
       {
@@ -24,14 +24,14 @@ exports.postAddUser = async (req, res, next) => {
       });
     }
 
-    if (!name || !email || !password || phoneno) {
+    if (!username || !email || !password || !phoneno) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create(
-      { name, email, phoneno, password: hashedPassword },
+      { username, email, password: hashedPassword, phoneno },
       { transaction: t }
     );
 
