@@ -62,10 +62,13 @@ exports.postAddUser = async (req, res, next) => {
 
 exports.postLoginUser = async (req, res, next) => {
   const t = await sequelize.transaction();
-  const { email, password } = req.body;
+  const { emailOrPhone, password } = req.body;
 
   try {
-    const user = await User.findOne({ where: { email } }, { transaction: t });
+    const user = await User.findOne(
+      { where: { email: emailOrPhone } },
+      { transaction: t }
+    );
 
     if (!user) {
       await t.rollback();

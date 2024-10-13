@@ -101,17 +101,22 @@ const Signup = () => {
       if (response.ok) {
         const data = await response.json();
         console.log(data);
-        toast.success(isSignup ? "Signup successful!" : "Login successful!");
-        dispatch(authAction.setToken(data.token));
+
+        if (isSignup) {
+          toast.success("Signup successful!");
+        } else {
+          toast.success("Login successful!");
+          dispatch(authAction.setToken(data.token));
+        }
       } else {
         if (response.status === 404) {
-          newErrors.usererror = "User not found";
+          toast.error("User not found");
         } else if (response.status === 401) {
-          newErrors.usererror = "Incorrect password or email";
+          toast.error("Incorrect password or email");
         } else if (response.status === 409) {
-          newErrors.usererror = "User already exists with this email";
+          toast.error("User already exists with this email");
         } else {
-          newErrors.usererror = data.message || "An error occurred";
+          toast.error(data.message);
         }
         setErrors(newErrors);
       }
@@ -169,6 +174,9 @@ const Signup = () => {
                 whileFocus={{ scale: 1.05 }}
                 transition={{ duration: 0.2 }}
               />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              )}
             </div>
           )}
 
@@ -192,6 +200,9 @@ const Signup = () => {
               whileFocus={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             />
+            {errors.emailOrPhone && (
+              <p className="text-red-500 text-sm mt-1">{errors.emailOrPhone}</p>
+            )}
           </div>
 
           {isSignup && (
@@ -234,6 +245,9 @@ const Signup = () => {
               whileFocus={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
           </div>
 
           {!isSignup && (
