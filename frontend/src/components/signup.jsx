@@ -1,35 +1,96 @@
 import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
 import "react-toastify/dist/ReactToastify.css";
+import { authAction } from "../../store/store";
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
   const nameRef = useRef();
-  const emailRef = useRef();
+  const emailPhoneRef = useRef();
   const phoneRef = useRef();
   const passwordRef = useRef();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+
+  const [errors, setErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+    usererror: "",
+  });
 
   const [loading, setLoading] = useState(false);
+  const [isSignup, setIsSignup] = useState(true);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const username = nameRef.current.value;
-    const email = emailRef.current.value;
-    const phoneno = phoneRef.current.value;
-    const password = passwordRef.current.value;
+    setErrors({ name: "", email: "", password: "", usererror: "" });
 
-    const authData = {
-      username,
-      email,
-      phoneno,
-      password,
-    };
+    const emailOrPhone = emailPhoneRef.current.value;
+    const password = passwordRef.current.value;
+    const username = isSignup ? nameRef.current.value : null;
+    const phoneno = isSignup ? phoneRef.current.value : null;
+
+    let isValid = true;
+    const newErrors = {};
+
+    if (isSignup && !username) {
+      newErrors.name = "Name is required";
+      isValid = false;
+    }
+
+    const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+    const phonePattern = /^\d{10}$/;
+
+    if (!emailOrPhone) {
+      newErrors.emailOrPhone = "Email or phone is required";
+      isValid = false;
+    } else if (
+      !emailPattern.test(emailOrPhone) &&
+      !phonePattern.test(emailOrPhone)
+    ) {
+      newErrors.emailOrPhone = "Invalid email or phone number";
+      isValid = false;
+    }
+
+    if (!password) {
+      newErrors.password = "Password is required";
+      isValid = false;
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters long";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+
+    if (!isValid) {
+      return;
+    }
+
+    const authData = isSignup
+      ? {
+          username,
+          email: emailOrPhone,
+          phoneno,
+          password,
+        }
+      : {
+          emailOrPhone,
+          password,
+        };
+
+    const url = isSignup
+      ? "http://localhost:3000/api/user/signup"
+      : "http://localhost:3000/api/user/login";
 
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:3000/api/user/signup", {
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -40,13 +101,22 @@ const Signup = () => {
       if (response.ok) {
         const data = await response.json();
         console.log(data);
-        toast.success("Signup successful!");
+        toast.success(isSignup ? "Signup successful!" : "Login successful!");
+        dispatch(authAction.setToken(data.token));
       } else {
-        const errorData = await response.json();
-        toast.error(`Signup failed: ${errorData.message}`);
+        if (response.status === 404) {
+          newErrors.usererror = "User not found";
+        } else if (response.status === 401) {
+          newErrors.usererror = "Incorrect password or email";
+        } else if (response.status === 409) {
+          newErrors.usererror = "User already exists with this email";
+        } else {
+          newErrors.usererror = data.message || "An error occurred";
+        }
+        setErrors(newErrors);
       }
     } catch (error) {
-      toast.error("Signup failed!");
+      toast.error(`${isSignup ? "Signup" : "Login"} failed!`);
     } finally {
       setLoading(false);
     }
@@ -61,7 +131,7 @@ const Signup = () => {
       />
 
       <motion.div
-        className="relative z-10 mb-0 lg:mb-0 bg-white  shadow-lg rounded-lg p-4 lg:p-8 w-80 h-[75vh] lg:h-full lg:w-full max-w-lg "
+        className="relative z-10 mb-0 lg:mb-0 bg-white shadow-lg rounded-lg p-4 lg:p-8 w-80 h-[75vh] lg:h-full lg:w-full max-w-lg"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
@@ -76,68 +146,75 @@ const Signup = () => {
         />
 
         <h2 className="text-xl lg:text-2xl font-bold text-center text-gray-700 mb-6">
-          Join the Chat!
+          {isSignup ? "Join the Chat!" : "Login to Chat"}
         </h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col">
-          <div className="">
+          {isSignup && (
+            <div>
+              <label
+                className="block text-sm font-medium text-gray-600 mb-2"
+                htmlFor="username"
+              >
+                Username
+              </label>
+              <motion.input
+                type="text"
+                name="username"
+                id="username"
+                ref={nameRef}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition duration-300"
+                placeholder="Enter your username"
+                required={isSignup}
+                whileFocus={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
+              />
+            </div>
+          )}
+
+          <div>
             <label
               className="block text-sm font-medium text-gray-600 mb-2"
-              htmlFor="username"
+              htmlFor="emailPhone"
             >
-              Username
+              {isSignup ? "Email" : "Email/Phone"}
             </label>
             <motion.input
               type="text"
-              name="username"
-              id="username"
-              ref={nameRef}
+              name="emailPhone"
+              id="emailPhone"
+              ref={emailPhoneRef}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition duration-300"
-              placeholder="Enter your username"
+              placeholder={
+                isSignup ? "Enter your email" : "Enter your email or phone"
+              }
               required
               whileFocus={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             />
           </div>
 
-          <div className="">
-            <label
-              className="block text-sm font-medium text-gray-600 mb-2"
-              htmlFor="email"
-            >
-              Email
-            </label>
-            <motion.input
-              type="email"
-              name="email"
-              id="email"
-              ref={emailRef}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition duration-300"
-              placeholder="Enter your email"
-              required
-              whileFocus={{ scale: 1.05 }}
-              transition={{ duration: 0.2 }}
-            />
-          </div>
-          <div className="">
-            <label
-              className="block text-sm font-medium text-gray-600 mb-2"
-              htmlFor="phoneno"
-            >
-              Phone Number
-            </label>
-            <motion.input
-              type=""
-              name="phoneno"
-              id="phoneno"
-              ref={phoneRef}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition duration-300"
-              placeholder="Enter your email"
-              required
-              whileFocus={{ scale: 1.05 }}
-              transition={{ duration: 0.2 }}
-            />
-          </div>
+          {isSignup && (
+            <div>
+              <label
+                className="block text-sm font-medium text-gray-600 mb-2"
+                htmlFor="phoneno"
+              >
+                Phone Number
+              </label>
+              <motion.input
+                type="text"
+                name="phoneno"
+                id="phoneno"
+                ref={phoneRef}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition duration-300"
+                placeholder="Enter your phone number"
+                required={isSignup}
+                whileFocus={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
+              />
+            </div>
+          )}
 
           <div className="mb-6">
             <label
@@ -159,6 +236,17 @@ const Signup = () => {
             />
           </div>
 
+          {!isSignup && (
+            <motion.button
+              type="button"
+              className="text-sm text-blue-600 mb-4 hover:underline"
+              whileTap={{ scale: 0.95 }}
+              onClick={() => toast.info("Forgot password feature coming soon!")}
+            >
+              Forgot Password?
+            </motion.button>
+          )}
+
           <motion.button
             type="submit"
             className="w-full bg-black text-white py-3 rounded-md hover:bg-blue-700 transition duration-300"
@@ -166,8 +254,24 @@ const Signup = () => {
             whileTap={{ scale: 0.95 }}
             disabled={loading}
           >
-            {loading ? "Signing Up..." : "Sign Up"}
+            {loading
+              ? isSignup
+                ? "Signing Up..."
+                : "Logging In..."
+              : isSignup
+              ? "Sign Up"
+              : "Login"}
           </motion.button>
+
+          <motion.p
+            className="text-sm text-gray-600 mt-4 text-center cursor-pointer hover:underline"
+            onClick={() => setIsSignup((prevState) => !prevState)}
+            whileTap={{ scale: 0.95 }}
+          >
+            {isSignup
+              ? "Already have an account? Login"
+              : "Don’t have an account? Sign Up"}
+          </motion.p>
         </form>
       </motion.div>
     </div>

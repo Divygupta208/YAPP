@@ -1,11 +1,12 @@
-import { ToastContainer } from "react-toastify";
 import Signup from "./components/signup";
+import { Route, Router, Routes } from "react-router-dom";
 
 function App() {
   return (
     <>
-      <ToastContainer position="top-right" autoClose={3000} />
-      <Signup />
+      <Routes>
+        <Route path="/" element={<Signup />} />
+      </Routes>
     </>
   );
 }
