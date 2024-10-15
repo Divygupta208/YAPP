@@ -102,11 +102,19 @@ const Signup = () => {
         const data = await response.json();
         console.log(data);
 
+        const userData = {
+          name: data.username,
+          email: data.usermail,
+          phoneno: data.phoneno,
+        };
+
         if (isSignup) {
           toast.success("Signup successful!");
         } else {
           toast.success("Login successful!");
           dispatch(authAction.setToken(data.token));
+          dispatch(authAction.setUserData(userData));
+          navigate("/chat");
         }
       } else {
         if (response.status === 404) {

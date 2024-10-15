@@ -17,10 +17,10 @@ const isTokenExpired = (token) => {
 
 const initialAuthState = {
   authToken: token || null,
-  // userData:
-  //   localStorage.getItem("userData") && !isTokenExpired(token)
-  //     ? JSON.parse(localStorage.getItem("userData"))
-  //     : { name: "ABC", email: "ABC@placeholder.com" },
+  userData:
+    localStorage.getItem("userData") && !isTokenExpired(token)
+      ? JSON.parse(localStorage.getItem("userData"))
+      : { name: "ABC", email: "ABC@placeholder.com" },
   isLoggedIn: token && !isTokenExpired(token),
   //   isPremiumUser:
   //     token && !isTokenExpired(token) ? jwtDecode(token).isPremium : false,
@@ -37,6 +37,19 @@ const authSlice = createSlice({
       //   ? jwtDecode(action.payload).isPremium
       //   : false;
       localStorage.setItem("token", action.payload);
+    },
+    setUserData: (state, action) => {
+      if (
+        state.isLoggedIn &&
+        state.authToken &&
+        !isTokenExpired(state.authToken)
+      ) {
+        state.userData = action.payload;
+        localStorage.setItem("userData", JSON.stringify(action.payload));
+      } else {
+        state.userData = null;
+        localStorage.removeItem("userData");
+      }
     },
   },
 });
