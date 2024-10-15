@@ -1,7 +1,9 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-const MessageList = ({ messages, currentUser }) => {
+const MessageList = ({ messages }) => {
+  const userData = JSON.parse(localStorage.getItem("userData"));
+
   return (
     <motion.div
       className="message-list h-64 overflow-y-auto mb-4 bg-gray-100 p-4 rounded-lg shadow-inner"
@@ -13,18 +15,21 @@ const MessageList = ({ messages, currentUser }) => {
         <motion.div
           key={index}
           className={`message mb-2 p-2 rounded-lg ${
-            message.user === currentUser
+            message.username === userData.name
               ? "bg-blue-200 self-end"
               : "bg-green-200 self-start"
           }`}
-          initial={{ x: message.user === currentUser ? 100 : -100, opacity: 0 }}
+          initial={{
+            x: message.username === userData.name ? 100 : -100,
+            opacity: 0,
+          }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
           <strong>
-            {message.user === currentUser ? "me" : message.user}:{" "}
+            {message.username === userData.name ? "me" : message.username}:{" "}
           </strong>{" "}
-          {message.text}
+          {message.content}
         </motion.div>
       ))}
     </motion.div>

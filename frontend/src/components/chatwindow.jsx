@@ -1,31 +1,42 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import MessageList from "./messagelist";
+import { useDispatch, useSelector } from "react-redux";
+import { chatAction } from "../../store/chat-slice";
 
-const ChatWindow = ({ currentUser }) => {
-  const [messages, setMessages] = useState([]);
+const ChatWindow = () => {
+  const dispatch = useDispatch();
+  const messages = useSelector((state) => state.chat.messages);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const initialMessages = [
-      { user: "vaibhav", text: "Hi" },
-      { user: "me", text: "Hello" },
-    ];
-    setMessages(initialMessages);
-  }, []);
+    dispatch(chatAction.fetchMessages());
+  }, [dispatch]);
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (message.trim()) {
-      const newMessage = { user: currentUser, text: message };
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-      setMessage("");
-    }
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch("http://localhost:3000/api/messages/send", {
+        method: "POST",
+        body: JSON.stringify({ content: message }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+      dispatch(chatAction.addMessage(data.message));
+    } catch (error) {}
   };
 
   return (
     <div className="flex flex-col w-[60vw] mx-auto mt-40 bg-white p-6 rounded-lg shadow-lg">
-      <MessageList messages={messages} currentUser={currentUser} />
+      <MessageList messages={messages} />
 
       <motion.form
         className="message-input flex space-x-2"
