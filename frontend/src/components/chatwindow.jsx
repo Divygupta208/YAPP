@@ -10,7 +10,11 @@ const ChatWindow = () => {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    // const intervalId = setInterval(() => {
     dispatch(chatAction.fetchMessages());
+    //   console.log("fetched");
+    // }, 1000);
+    // return () => clearInterval(intervalId);
   }, [dispatch]);
 
   const handleSendMessage = async (e) => {
