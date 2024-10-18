@@ -9,12 +9,24 @@ const ChatWindow = () => {
   const messages = useSelector((state) => state.chat.messages);
   const [message, setMessage] = useState("");
 
+  const MAX_MESSAGES_STORAGE = 10;
+
+  const getLocalStorageMessages = () => {
+    const storedMessages = localStorage.getItem("messages");
+    return storedMessages ? JSON.parse(storedMessages) : [];
+  };
+
   useEffect(() => {
-    // const intervalId = setInterval(() => {
-    dispatch(chatAction.fetchMessages());
-    //   console.log("fetched");
-    // }, 1000);
-    // return () => clearInterval(intervalId);
+    const localMessages = getLocalStorageMessages();
+
+    if (localMessages.length === 0) {
+      dispatch(chatAction.fetchMessages());
+    } else {
+      dispatch(chatAction.setMessages(localMessages));
+
+      const lastMessageId = localMessages[localMessages.length - 1].id;
+      dispatch(chatAction.fetchMessages(lastMessageId));
+    }
   }, [dispatch]);
 
   const handleSendMessage = async (e) => {
@@ -32,10 +44,17 @@ const ChatWindow = () => {
       });
 
       const data = await response.json();
-      console.log(data);
 
       dispatch(chatAction.addMessage(data.message));
     } catch (error) {}
+  };
+
+  const handleLoadOlderMessages = () => {
+    const localMessages = getLocalStorageMessages();
+    if (localMessages.length > 0) {
+      const firstMessageId = localMessages[0].id;
+      dispatch(chatAction.fetchMessages(null, firstMessageId));
+    }
   };
 
   return (
@@ -63,6 +82,7 @@ const ChatWindow = () => {
           Send
         </button>
       </motion.form>
+      <button onClick={handleLoadOlderMessages}>Load Older Messages</button>
     </div>
   );
 };

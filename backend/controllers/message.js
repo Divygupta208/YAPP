@@ -1,4 +1,6 @@
+const { Sequelize } = require("sequelize");
 const Message = require("../models/message");
+const { Op } = require("sequelize");
 const sequelize = require("../util/database");
 
 exports.postMessage = async (req, res, next) => {
@@ -24,13 +26,40 @@ exports.postMessage = async (req, res, next) => {
 
 exports.getMessages = async (req, res, next) => {
   try {
-    const messages = await Message.findAll({
-      order: [["createdAt", "ASC"]],
-    });
+    const lastMessageId = req.query.lastMessageId;
+    const firstMessageId = req.query.firstMessageId;
 
-    return res.status(200).json(messages);
+    let messages;
+
+    if (lastMessageId) {
+      messages = await Message.findAll({
+        where: {
+          id: {
+            [Sequelize.Op.gt]: lastMessageId,
+          },
+        },
+        order: [["createdAt", "ASC"]],
+        limit: 10,
+      });
+    } else if (firstMessageId) {
+      messages = await Message.findAll({
+        where: {
+          id: {
+            [Sequelize.Op.lt]: firstMessageId,
+          },
+        },
+        order: [["createdAt", "DESC"]],
+        limit: 10,
+      });
+    } else {
+      messages = await Message.findAll({
+        order: [["createdAt", "ASC"]],
+      });
+    }
+
+    res.json(messages);
   } catch (error) {
     console.error("Error fetching messages:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Server error while fetching messages." });
   }
 };
