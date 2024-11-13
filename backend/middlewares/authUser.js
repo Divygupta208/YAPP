@@ -10,6 +10,7 @@ const authenticateUser = async (req, res, next) => {
     );
 
     const user = await User.findByPk(decodedToken.userId);
+    console.log(decodedToken.userId);
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
