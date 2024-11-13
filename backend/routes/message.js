@@ -4,6 +4,7 @@ const router = express.Router();
 const messageController = require("../controllers/message");
 
 router.post("/send", messageController.postMessage);
-router.get("/received", messageController.getMessages);
+router.get("/user/:receiverId", messageController.getMessages);
+router.get("/group/:groupId", messageController.getMessages);
 
 module.exports = router;
