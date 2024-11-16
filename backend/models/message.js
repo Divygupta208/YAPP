@@ -22,6 +22,10 @@ const Message = sequelize.define("message", {
     allowNull: true,
     references: { model: "Users", key: "id" },
   },
+  attachment: {
+    type: Sequelize.STRING,
+    allowNull: true,
+  },
 });
 
 module.exports = Message;

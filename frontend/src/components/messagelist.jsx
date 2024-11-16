@@ -29,6 +29,8 @@ const MessageList = ({ messages }) => {
           <strong className="block mb-1 text-sm text-gray-900">
             {message.username === userData.name ? "Me" : message.username}
           </strong>
+          {message.attachment && <img src={message.attachment} />}
+          {console.log(message.attachment)}
           <p className="text-gray-800">{message.content}</p>
         </motion.div>
       ))}

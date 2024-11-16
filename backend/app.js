@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -27,8 +28,8 @@ const onlineUsers = {};
 const onlineUsersPerRoom = {};
 
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+app.use(bodyParser.json({ limit: "50mb" }));
 
 app.use("/api/user", userRoute);
 app.use("/api/messages", authenticateUser, messageRoute);
@@ -95,7 +96,7 @@ io.on("connection", (socket) => {
   });
 
   // Listen for sending messages
-  socket.on("sendMessage", (data) => {
+  socket.on("sendMessage", async (data) => {
     const { roomId, message } = data;
 
     if (!roomId || !message) {

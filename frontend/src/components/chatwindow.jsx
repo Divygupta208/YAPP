@@ -6,6 +6,7 @@ import { chatAction } from "../../store/chat-slice";
 import GroupDetails from "./groupdetails";
 import io from "socket.io-client";
 import { jwtDecode } from "jwt-decode";
+import ChatInput from "./chatinput";
 
 const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
   const dispatch = useDispatch();
@@ -109,42 +110,153 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
     };
   }, [dispatch, selectedChat, socket]);
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
+  // const handleSendMessage = async (attachment) => {
+  //   const token = localStorage.getItem("token");
+  //   const formData = new FormData();
+
+  //   formData.append("content", message);
+  //   formData.append(
+  //     "receiverId",
+  //     selectedChat.username ? selectedChat.id : null
+  //   );
+  //   formData.append("groupId", selectedChat.name ? selectedChat.id : null);
+
+  //   if (attachment) {
+  //     formData.append("attachment", attachment);
+  //   }
+
+  //   try {
+  //     const response = await fetch("http://localhost:3000/api/messages/send", {
+  //       method: "POST",
+  //       body: formData,
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+
+  //     const data = await response.json();
+  //     setMessage("");
+
+  //     const currentUserId = token ? jwtDecode(token).userId : null;
+  //     let roomId;
+
+  //     if (selectedChat.username) {
+  //       roomId = `room_${Math.min(currentUserId, selectedChat.id)}_${Math.max(
+  //         currentUserId,
+  //         selectedChat.id
+  //       )}`;
+  //     } else {
+  //       roomId = `group_${selectedChat.id}`;
+  //     }
+
+  //     socket.emit("sendMessage", { roomId, message: data.message });
+  //   } catch (error) {
+  //     console.error("Error sending message:", error);
+  //   }
+  // };
+
+  const handleSendMessage = async (attachment) => {
     const token = localStorage.getItem("token");
 
-    try {
-      const response = await fetch("http://localhost:3000/api/messages/send", {
-        method: "POST",
-        body: JSON.stringify({
+    // Convert attachment to Base64 if it exists
+    let attachmentData = null;
+    if (attachment) {
+      // Convert file to Base64 (you can use a FileReader API)
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(attachment);
+      fileReader.onloadend = async () => {
+        attachmentData = fileReader.result; // Base64 string of the attachment
+
+        // Prepare message data including attachment as Base64
+        const messageData = {
           content: message,
           receiverId: selectedChat.username ? selectedChat.id : null,
           groupId: selectedChat.name ? selectedChat.id : null,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+          attachment: attachmentData, // Send Base64 encoded attachment
+        };
 
-      const data = await response.json();
-      setMessage("");
+        // Send message and attachment as JSON
+        try {
+          const response = await fetch(
+            "http://localhost:3000/api/messages/send",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(messageData), // Send data as JSON
+            }
+          );
 
-      const currentUserId = token ? jwtDecode(token).userId : null;
-      let roomId;
+          const data = await response.json();
+          setMessage(""); // Reset the message input
 
-      if (selectedChat.username) {
-        roomId = `room_${Math.min(currentUserId, selectedChat.id)}_${Math.max(
-          currentUserId,
-          selectedChat.id
-        )}`;
-      } else {
-        roomId = `group_${selectedChat.id}`;
+          const currentUserId = token ? jwtDecode(token).userId : null;
+          let roomId;
+
+          if (selectedChat.username) {
+            roomId = `room_${Math.min(
+              currentUserId,
+              selectedChat.id
+            )}_${Math.max(currentUserId, selectedChat.id)}`;
+          } else {
+            roomId = `group_${selectedChat.id}`;
+          }
+
+          socket.emit("sendMessage", {
+            roomId,
+            message: data.message, // Ensure `data.message` is the message object returned from the backend
+          });
+        } catch (error) {
+          console.error("Error sending message:", error);
+        }
+      };
+    } else {
+      // If there's no attachment, just send the message as usual
+      const messageData = {
+        content: message,
+        receiverId: selectedChat.username ? selectedChat.id : null,
+        groupId: selectedChat.name ? selectedChat.id : null,
+      };
+
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/messages/send",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(messageData), // Send data as JSON
+          }
+        );
+
+        const data = await response.json();
+        console.log("socket test", data.message);
+        setMessage(""); // Reset the message input
+
+        const currentUserId = token ? jwtDecode(token).userId : null;
+        let roomId;
+
+        if (selectedChat.username) {
+          roomId = `room_${Math.min(currentUserId, selectedChat.id)}_${Math.max(
+            currentUserId,
+            selectedChat.id
+          )}`;
+        } else {
+          roomId = `group_${selectedChat.id}`;
+        }
+
+        socket.emit("sendMessage", {
+          roomId,
+          message: data.message, // Ensure `data.message` is the message object returned from the backend
+        });
+      } catch (error) {
+        console.error("Error sending message:", error);
       }
-
-      socket.emit("sendMessage", { roomId, message: data.message });
-    } catch (error) {
-      console.error("Error sending message:", error);
     }
   };
 
@@ -171,40 +283,13 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
         <h1 className="text-center font-bold text-lg">Start A Conversation</h1>
       )}
 
-      {/* Display join notifications
-      <div className="join-notifications">
-        {joinNotifications.map((notification, index) => (
-          <div
-            key={index}
-            className="notification text-gray-500 text-sm italic"
-          >
-            {notification.message}
-          </div>
-        ))}
-      </div> */}
       <MessageList messages={messages} />
 
-      <motion.form
-        className="message-input flex space-x-2"
-        onSubmit={handleSendMessage}
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <input
-          type="text"
-          className="flex-grow border border-gray-300 rounded-lg p-2"
-          placeholder="Type your message..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600"
-        >
-          Send
-        </button>
-      </motion.form>
+      <ChatInput
+        message={message}
+        setMessage={setMessage}
+        handleSendMessage={handleSendMessage}
+      />
 
       {showGroupDetails && (
         <GroupDetails

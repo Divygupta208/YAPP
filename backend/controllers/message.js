@@ -2,11 +2,54 @@ const { Sequelize } = require("sequelize");
 const Message = require("../models/message");
 const { Op } = require("sequelize");
 const sequelize = require("../util/database");
+const AWS = require("aws-sdk");
+const FileType = require("file-type");
 
-exports.postMessage = async (req, res, next) => {
-  const { content, receiverId, groupId } = req.body;
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: "ap-south-1",
+});
+
+const uploadToS3 = async (base64Data, filename) => {
+  // Decode base64 data
+
+  // Decode base64 data to a buffer
+  const buffer = Buffer.from(base64Data.split(",")[1], "base64");
+
+  // Detect the file type from the buffer
+  const fileTypeResult = await FileType.fromBuffer(buffer);
+
+  // Set default ContentType if file type cannot be determined
+  const contentType = fileTypeResult?.mime || "application/octet-stream";
+
+  const params = {
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: filename, // Use the file name or generate a unique one
+    Body: buffer,
+    ACL: "public-read",
+    ContentType: contentType, // Dynamically detected file type
+  };
+
+  return new Promise((resolve, reject) => {
+    s3.upload(params, (err, data) => {
+      if (err) {
+        console.error("Error uploading to S3:", err);
+        reject(err);
+      } else {
+        console.log("File uploaded successfully:", data.Location);
+        resolve(data.Location); // Return the S3 file URL
+      }
+    });
+  });
+};
+// Adjust the path if necessary
+
+exports.postMessage = async (req, res) => {
+  const { content, receiverId, groupId, attachment } = req.body;
   const userId = req.user.id;
 
+  // Validate user and content
   if (!userId) {
     return res.status(401).json({ message: "Unauthorized access" });
   }
@@ -16,13 +59,41 @@ exports.postMessage = async (req, res, next) => {
   }
 
   try {
+    // Check if there's an attachment and upload it to S3
+    let attachmentUrl = null;
+
+    if (attachment) {
+      // const getFileExtension = (attachment) => {
+      //   const base64Match = attachment.match(
+      //     /data:(image|application)\/(png|jpeg|jpg|gif|webp|pdf|msword|vnd.openxmlformats-officedocument.wordprocessingml.document);base64,/i
+      //   );
+      //   const urlMatch = attachment.match(/.*\.(\w+)$/i);
+      //   if (base64Match) {
+      //     return base64Match[2]; // Match MIME type for Base64 (e.g., pdf, png, etc.)
+      //   } else if (urlMatch) {
+      //     return urlMatch[1]; // Match file extension in URL
+      //   }
+      //   return "unknown"; // Fallback if no extension found
+      // };
+
+      // const extension = getFileExtension(attachment);
+
+      // console.log("Extension: " + extension);
+
+      const filename = `attachments-${Date.now()}_${userId}`; // Unique filename for S3
+      attachmentUrl = await uploadToS3(attachment, filename);
+    }
+
+    // Create message entry in the database with or without attachment
     const message = await Message.create({
       content,
       username: req.user.username,
       userId: userId,
       receiverId: receiverId || null,
       groupId: groupId || null,
+      attachment: attachmentUrl, // Save the S3 URL if there's an attachment
     });
+
     res.status(201).json({ success: true, message });
   } catch (error) {
     console.error("Error sending message:", error);

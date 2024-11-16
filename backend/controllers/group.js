@@ -43,7 +43,7 @@ exports.getUserGroups = async (req, res) => {
     const groups = userGroups.map((userGroup) =>
       userGroup.Group.get({ plain: true })
     );
-    console.log("Group:", groups);
+
     res.status(200).json(groups);
   } catch (error) {
     console.error("Error fetching user groups:", error);
@@ -83,8 +83,6 @@ exports.getGroupDetails = async (req, res) => {
       nest: true,
     });
 
-    console.log("groupmembers", groupMembers);
-
     // Format the group members list to include user info and role
     const members = groupMembers.map((member) => ({
       id: member.user.id,
@@ -92,8 +90,6 @@ exports.getGroupDetails = async (req, res) => {
       email: member.user.email,
       role: member.role,
     }));
-
-    console.log("group", group);
 
     // Respond with both the admin status and members list
     return res.status(200).json({ isAdmin, members, group });
@@ -106,8 +102,6 @@ exports.getGroupDetails = async (req, res) => {
 exports.addMembersToGroup = async (req, res) => {
   const { groupId } = req.params;
   const { userIds } = req.body; // Array of user IDs to be added to the group
-
-  console.log("groupid", groupId);
 
   try {
     // Check if the group exists
