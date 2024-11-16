@@ -4,6 +4,8 @@ const { Op } = require("sequelize");
 const sequelize = require("../util/database");
 const AWS = require("aws-sdk");
 const FileType = require("file-type");
+const cron = require("cron");
+const ArchivedMessages = require("archived-messages");
 
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -44,6 +46,70 @@ const uploadToS3 = async (base64Data, filename) => {
   });
 };
 // Adjust the path if necessary
+
+const archiveOldMessages = async () => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    // Get the timestamp for 1 day ago
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    console.log("Archiving messages older than:", oneDayAgo);
+
+    // Step 1: Fetch messages older than 1 day
+    const messagesToArchive = await Message.findAll({
+      where: { createdAt: { [Op.lt]: oneDayAgo } },
+    });
+
+    if (!messagesToArchive.length) {
+      console.log("No messages to archive.");
+      await transaction.commit();
+      return;
+    }
+
+    // Step 2: Prepare data for ArchivedChat
+    const archivedMessages = messagesToArchive.map((message) => ({
+      id: message.id, // Retain original ID
+      content: message.content,
+      username: message.username,
+      groupId: message.groupId,
+      userId: message.userId,
+      receiverId: message.receiverId,
+      attachment: message.attachment,
+      createdAt: message.createdAt,
+      updatedAt: message.updatedAt, // Original creation time
+      archivedAt: new Date(), // Time when archived
+    }));
+
+    // Step 3: Insert messages into ArchivedChat
+    await ArchivedMessages.bulkCreate(archivedMessages, { transaction });
+
+    // Step 4: Delete messages older than 1 day directly using createdAt
+    await Message.destroy({
+      where: { createdAt: { [Op.lt]: oneDayAgo } },
+      transaction,
+    });
+
+    // Step 5: Commit the transaction
+    await transaction.commit();
+    console.log(
+      `${archivedMessages.length} messages archived and deleted successfully.`
+    );
+  } catch (error) {
+    // Roll back in case of an error
+    await transaction.rollback();
+    console.error("Failed to archive and delete messages:", error);
+  }
+};
+
+// Cron job setup
+const job = new cron.CronJob(
+  "0 0 * * *", // Run daily at midnight
+  archiveOldMessages, // Function to run
+  null, // onComplete
+  true, // Start the job immediately
+  "Asia/Kolkata" // Time zone
+);
 
 exports.postMessage = async (req, res) => {
   const { content, receiverId, groupId, attachment } = req.body;
