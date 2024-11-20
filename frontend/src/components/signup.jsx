@@ -84,8 +84,8 @@ const Signup = () => {
         };
 
     const url = isSignup
-      ? "http://localhost:3000/api/user/signup"
-      : "http://localhost:3000/api/user/login";
+      ? "https://yapp.zapto.org/api/user/signup"
+      : "https://yapp.zapto.org/api/user/login";
 
     try {
       setLoading(true);

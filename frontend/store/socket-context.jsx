@@ -10,7 +10,7 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     // Establish connection with the server
-    const newSocket = io("http://localhost:3000", {
+    const newSocket = io("https://yapp.zapto.org", {
       transports: ["websocket"],
     });
 

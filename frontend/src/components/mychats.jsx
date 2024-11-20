@@ -19,7 +19,9 @@ const MyChats = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/user/allusers");
+        const response = await fetch(
+          "https://yapp.zapto.org/api/user/allusers"
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch users");
         }
@@ -37,7 +39,7 @@ const MyChats = () => {
     const fetchUserGroups = async () => {
       try {
         const response = await fetch(
-          "http://localhost:3000/api/groups/usergroups",
+          "https://yapp.zapto.org/api/groups/usergroups",
           {
             method: "GET",
             headers: {
@@ -69,7 +71,7 @@ const MyChats = () => {
   }, [search, users]);
 
   const handleCreateGroup = async (groupName, groupDesc, selectedUsers) => {
-    const response = await fetch("http://localhost:3000/api/groups/create", {
+    const response = await fetch("https://yapp.zapto.org/api/groups/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
