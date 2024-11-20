@@ -5,7 +5,7 @@ const sequelize = require("../util/database");
 const AWS = require("aws-sdk");
 const FileType = require("file-type");
 const cron = require("cron");
-const ArchivedMessages = require("archived-messages");
+const ArchivedMessages = require("../models/archived-messages");
 
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
