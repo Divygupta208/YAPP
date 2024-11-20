@@ -93,7 +93,7 @@ const MyChats = () => {
   return (
     <div className="flex h-[90vh] p-14">
       {/* Sidebar */}
-      <div className="w-1/3 bg-white border-r p-4 rounded-3xl -mt-10 shadow-2xl">
+      <div className="w-1/3 bg-[#ffffff] border-r p-4 rounded-3xl -mt-10 shadow-2xl">
         <input
           type="text"
           placeholder="Search users"
@@ -104,7 +104,7 @@ const MyChats = () => {
 
         <button
           onClick={() => setGroupModalOpen(true)}
-          className="w-full mt-4 py-2 bg-violet-400 rounded-2xl text-white hover:bg-violet-600 transition duration-200"
+          className="w-full mt-4 py-2 bg-violet-500 rounded-2xl text-white hover:bg-violet-600 transition duration-200"
         >
           Create Group
         </button>

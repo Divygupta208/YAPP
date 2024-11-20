@@ -14,7 +14,7 @@ const Home = () => {
   const userData = JSON.parse(localStorage.getItem("userData"));
 
   return (
-    <div className="flex flex-col bg-emerald-100">
+    <div className="flex flex-col bg-[#1b1242] ">
       {/* Header */}
       <div className="bg-white p-3 w-[100vw] flex shadow-lg">
         <div>
