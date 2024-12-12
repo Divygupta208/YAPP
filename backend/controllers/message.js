@@ -14,23 +14,18 @@ const s3 = new AWS.S3({
 });
 
 const uploadToS3 = async (base64Data, filename) => {
-  // Decode base64 data
-
-  // Decode base64 data to a buffer
   const buffer = Buffer.from(base64Data.split(",")[1], "base64");
 
-  // Detect the file type from the buffer
   const fileTypeResult = await FileType.fromBuffer(buffer);
 
-  // Set default ContentType if file type cannot be determined
   const contentType = fileTypeResult?.mime || "application/octet-stream";
 
   const params = {
     Bucket: process.env.AWS_S3_BUCKET_NAME,
-    Key: filename, // Use the file name or generate a unique one
+    Key: filename,
     Body: buffer,
     ACL: "public-read",
-    ContentType: contentType, // Dynamically detected file type
+    ContentType: contentType,
   };
 
   return new Promise((resolve, reject) => {
@@ -40,23 +35,20 @@ const uploadToS3 = async (base64Data, filename) => {
         reject(err);
       } else {
         console.log("File uploaded successfully:", data.Location);
-        resolve(data.Location); // Return the S3 file URL
+        resolve(data.Location);
       }
     });
   });
 };
-// Adjust the path if necessary
 
 const archiveOldMessages = async () => {
   const transaction = await sequelize.transaction();
 
   try {
-    // Get the timestamp for 1 day ago
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     console.log("Archiving messages older than:", oneDayAgo);
 
-    // Step 1: Fetch messages older than 1 day
     const messagesToArchive = await Message.findAll({
       where: { createdAt: { [Op.lt]: oneDayAgo } },
     });
@@ -67,9 +59,8 @@ const archiveOldMessages = async () => {
       return;
     }
 
-    // Step 2: Prepare data for ArchivedChat
     const archivedMessages = messagesToArchive.map((message) => ({
-      id: message.id, // Retain original ID
+      id: message.id,
       content: message.content,
       username: message.username,
       groupId: message.groupId,

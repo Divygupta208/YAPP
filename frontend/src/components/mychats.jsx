@@ -20,7 +20,7 @@ const MyChats = () => {
     const fetchUsers = async () => {
       try {
         const response = await fetch(
-          "https://yapp.zapto.org/api/user/allusers"
+          "http://my-api.zapto.org/yapp/api/user/allusers"
         );
         if (!response.ok) {
           throw new Error("Failed to fetch users");
@@ -39,7 +39,7 @@ const MyChats = () => {
     const fetchUserGroups = async () => {
       try {
         const response = await fetch(
-          "https://yapp.zapto.org/api/groups/usergroups",
+          "http://my-api.zapto.org/yapp/api/groups/usergroups",
           {
             method: "GET",
             headers: {
@@ -71,18 +71,21 @@ const MyChats = () => {
   }, [search, users]);
 
   const handleCreateGroup = async (groupName, groupDesc, selectedUsers) => {
-    const response = await fetch("https://yapp.zapto.org/api/groups/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        name: groupName,
-        description: groupDesc,
-        users: selectedUsers,
-      }),
-    });
+    const response = await fetch(
+      "http://my-api.zapto.org/yapp/api/groups/create",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: groupName,
+          description: groupDesc,
+          users: selectedUsers,
+        }),
+      }
+    );
 
     const newGroup = await response.json();
     setGroups((prevGroups) => [...prevGroups, newGroup]);

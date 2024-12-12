@@ -22,7 +22,7 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
 
   useEffect(() => {
     // Create a socket connection when the component mounts
-    const newSocket = io("https://yapp.zapto.org");
+    const newSocket = io("http://my-api.zapto.org/yapp");
     setSocket(newSocket);
 
     if (currentUserId) {
@@ -60,8 +60,8 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
     const fetchMessages = async () => {
       const token = localStorage.getItem("token");
       const url = selectedChat.username
-        ? `https://yapp.zapto.org/api/messages/user/${selectedChat.id}`
-        : `https://yapp.zapto.org/api/messages/group/${selectedChat.id}`;
+        ? `http://my-api.zapto.org/yapp/api/messages/user/${selectedChat.id}`
+        : `http://my-api.zapto.org/yapp/api/messages/group/${selectedChat.id}`;
 
       try {
         const response = await fetch(url, {
@@ -126,7 +126,7 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
   //   }
 
   //   try {
-  //     const response = await fetch("https://yapp.zapto.org/api/messages/send", {
+  //     const response = await fetch("http://my-api.zapto.org/yapp/api/messages/send", {
   //       method: "POST",
   //       body: formData,
   //       headers: {
@@ -179,7 +179,7 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
         // Send message and attachment as JSON
         try {
           const response = await fetch(
-            "https://yapp.zapto.org/api/messages/send",
+            "http://my-api.zapto.org/yapp/api/messages/send",
             {
               method: "POST",
               headers: {
@@ -223,7 +223,7 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
 
       try {
         const response = await fetch(
-          "https://yapp.zapto.org/api/messages/send",
+          "http://my-api.zapto.org/yapp/api/messages/send",
           {
             method: "POST",
             headers: {
