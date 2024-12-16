@@ -46,15 +46,6 @@ Message.belongsTo(Group, { foreignKey: "groupId" });
 User.hasMany(Message, { foreignKey: "userId" });
 Message.belongsTo(User, { foreignKey: "userId" });
 
-// Group.hasMany(Invitation, { foreignKey: "groupId" });
-// Invitation.belongsTo(Group, { foreignKey: "groupId" });
-
-// User.hasMany(Invitation, { foreignKey: "invitedUserId" });
-// Invitation.belongsTo(User, { foreignKey: "invitedUserId" });
-
-// User.hasMany(ForgotPasswordRequest);
-// ForgotPasswordRequest.belongsTo(User);
-
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
@@ -63,6 +54,7 @@ io.on("connection", (socket) => {
     const uniqueUserIds = [...new Set(Object.values(onlineUsers))];
     io.emit("onlineUsers", uniqueUserIds);
   });
+  console.log("onlineUsers:", onlineUsers);
 
   socket.on("joinRoom", ({ roomId, userId, username }) => {
     socket.join(roomId);
@@ -79,10 +71,8 @@ io.on("connection", (socket) => {
       Object.values(onlineUsers).includes(user.userId)
     );
 
-    // socket.emit("onlineRoomUsers", onlineRoomUsers);
-    console.log("onlineRoomUsers", onlineRoomUsers);
     io.to(roomId).emit("onlineRoomUsers", onlineRoomUsers);
-    // Broadcast join message to the group
+
     if (roomId.startsWith("group_")) {
       const joinMessage = `${username}`;
       io.to(roomId).emit("joinMessage", {
@@ -95,7 +85,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Listen for sending messages
   socket.on("sendMessage", async (data) => {
     const { roomId, message } = data;
 
@@ -103,18 +92,9 @@ io.on("connection", (socket) => {
       console.log("Invalid data:", data);
       return;
     }
-    // Emit message to the appropriate room (group or private)
-    io.to(roomId).emit("receiveMessage", { message });
-    console.log(`Message sent to room: ${roomId}`);
-  });
 
-  // Handle disconnection
-  // socket.on("disconnect", () => {
-  //   const userId = onlineUsers[socket.id];
-  //   delete onlineUsers[socket.id]; // Remove user from online users list
-  //   io.emit("onlineUsers", Object.values(onlineUsers)); // Update online users for all clients
-  //   console.log("A user disconnected:", socket.id);
-  // });
+    io.to(roomId).emit("receiveMessage", { message });
+  });
 
   socket.on("disconnect", () => {
     const userId = onlineUsers[socket.id];
@@ -129,18 +109,16 @@ io.on("connection", (socket) => {
 
       if (userIndex !== -1) {
         const username = roomUsers[userIndex].username;
-        roomUsers.splice(userIndex, 1); // Remove the user from the room's online users list
+        roomUsers.splice(userIndex, 1);
 
-        // Update online users in the room for all clients
         io.to(roomId).emit("onlineRoomUsers", roomUsers);
 
-        // Send a leave message if it's a group room
         if (roomId.startsWith("group_")) {
           io.to(roomId).emit("leaveMessage", {
             message: `${username} has left the group.`,
             system: true,
             userId: userId,
-            onlineUsers: roomUsers, // Send the updated room users
+            onlineUsers: roomUsers,
           });
           console.log(`User ${username} left room: ${roomId}`);
         }

@@ -21,26 +21,16 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
   const currentUserId = token ? jwtDecode(token).userId : null;
 
   useEffect(() => {
-    // Create a socket connection when the component mounts
-    const newSocket = io("http://my-api.zapto.org/yapp");
+    const newSocket = io("http://localhost:3000");
     setSocket(newSocket);
 
     if (currentUserId) {
       newSocket.emit("setUserId", currentUserId);
     }
 
-    // Listen for online user updates
     newSocket.on("onlineUsers", (users) => {
       setOnlineUsers(users);
     });
-
-    // const handleJoinMessage = (data) => {
-    //   setJoinNotifications((prev) => [
-    //     ...prev.filter((notification) => notification.userId !== data.userId),
-    //     { message: data.message, userId: data.userId },
-    //   ]);
-    // };
-    // newSocket.on("joinMessage", handleJoinMessage);
 
     newSocket.on("onlineRoomUsers", (usersInRoom) => {
       setRoomUsers(usersInRoom);
@@ -60,8 +50,8 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
     const fetchMessages = async () => {
       const token = localStorage.getItem("token");
       const url = selectedChat.username
-        ? `http://my-api.zapto.org/yapp/api/messages/user/${selectedChat.id}`
-        : `http://my-api.zapto.org/yapp/api/messages/group/${selectedChat.id}`;
+        ? `http://localhost:3000/api/messages/user/${selectedChat.id}`
+        : `http://localhost:3000/api/messages/group/${selectedChat.id}`;
 
       try {
         const response = await fetch(url, {
@@ -110,52 +100,6 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
     };
   }, [dispatch, selectedChat, socket]);
 
-  // const handleSendMessage = async (attachment) => {
-  //   const token = localStorage.getItem("token");
-  //   const formData = new FormData();
-
-  //   formData.append("content", message);
-  //   formData.append(
-  //     "receiverId",
-  //     selectedChat.username ? selectedChat.id : null
-  //   );
-  //   formData.append("groupId", selectedChat.name ? selectedChat.id : null);
-
-  //   if (attachment) {
-  //     formData.append("attachment", attachment);
-  //   }
-
-  //   try {
-  //     const response = await fetch("http://my-api.zapto.org/yapp/api/messages/send", {
-  //       method: "POST",
-  //       body: formData,
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
-
-  //     const data = await response.json();
-  //     setMessage("");
-
-  //     const currentUserId = token ? jwtDecode(token).userId : null;
-  //     let roomId;
-
-  //     if (selectedChat.username) {
-  //       roomId = `room_${Math.min(currentUserId, selectedChat.id)}_${Math.max(
-  //         currentUserId,
-  //         selectedChat.id
-  //       )}`;
-  //     } else {
-  //       roomId = `group_${selectedChat.id}`;
-  //     }
-
-  //     socket.emit("sendMessage", { roomId, message: data.message });
-  //   } catch (error) {
-  //     console.error("Error sending message:", error);
-  //   }
-  // };
-
   const handleSendMessage = async (attachment) => {
     const token = localStorage.getItem("token");
 
@@ -179,7 +123,7 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
         // Send message and attachment as JSON
         try {
           const response = await fetch(
-            "http://my-api.zapto.org/yapp/api/messages/send",
+            "http://localhost:3000/api/messages/send",
             {
               method: "POST",
               headers: {
@@ -223,7 +167,7 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
 
       try {
         const response = await fetch(
-          "http://my-api.zapto.org/yapp/api/messages/send",
+          "http://localhost:3000/api/messages/send",
           {
             method: "POST",
             headers: {

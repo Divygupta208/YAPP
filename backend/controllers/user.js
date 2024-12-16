@@ -103,6 +103,8 @@ exports.postLoginUser = async (req, res, next) => {
       username: user.username,
       usermail: user.email,
       phoneno: user.phoneno,
+      profilePicture: user.profilePicture,
+      bio: user.bio,
     });
   } catch (error) {
     await t.rollback();
@@ -212,6 +214,41 @@ exports.postResetPassword = async (req, res, next) => {
   } catch (error) {
     console.error("Error updating password:", error);
     return res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  const { userId } = req.params;
+  const { name, bio } = req.body;
+  const profilePicture = req.fileKey;
+  try {
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    let updatedData = {
+      name,
+      bio,
+    };
+
+    if (profilePicture) {
+      const bucketName = process.env.AWS_S3_BUCKET_NAME;
+      const region = process.env.AWS_REGION || "ap-south-1";
+      const profilePictureUrl = `https://${bucketName}.s3.${region}.amazonaws.com/profile-pictures/${profilePicture}`;
+      updatedData.profilePicture = profilePictureUrl;
+    }
+
+    await user.update(updatedData);
+
+    return res.status(200).json({
+      message: "User updated successfully",
+      user,
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return res.status(500).json({ error: "Server error" });
   }
 };
 

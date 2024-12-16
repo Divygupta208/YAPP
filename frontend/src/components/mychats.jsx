@@ -19,9 +19,7 @@ const MyChats = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch(
-          "http://my-api.zapto.org/yapp/api/user/allusers"
-        );
+        const response = await fetch("http://localhost:3000/api/user/allusers");
         if (!response.ok) {
           throw new Error("Failed to fetch users");
         }
@@ -39,7 +37,7 @@ const MyChats = () => {
     const fetchUserGroups = async () => {
       try {
         const response = await fetch(
-          "http://my-api.zapto.org/yapp/api/groups/usergroups",
+          "http://localhost:3000/api/groups/usergroups",
           {
             method: "GET",
             headers: {
@@ -71,21 +69,18 @@ const MyChats = () => {
   }, [search, users]);
 
   const handleCreateGroup = async (groupName, groupDesc, selectedUsers) => {
-    const response = await fetch(
-      "http://my-api.zapto.org/yapp/api/groups/create",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: groupName,
-          description: groupDesc,
-          users: selectedUsers,
-        }),
-      }
-    );
+    const response = await fetch("http://localhost:3000/api/groups/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        name: groupName,
+        description: groupDesc,
+        users: selectedUsers,
+      }),
+    });
 
     const newGroup = await response.json();
     setGroups((prevGroups) => [...prevGroups, newGroup]);
@@ -125,12 +120,15 @@ const MyChats = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: user.id * 0.1 }}
             >
-              {user.profile ? (
-                <img src={user.profile} />
+              {user.profilePicture ? (
+                <img
+                  src={user.profilePicture}
+                  className="rounded-full w-10 h-10"
+                />
               ) : (
                 <img src="/default-avatar.svg" width={12} />
               )}
-              {user.username}
+              <div className="mt-2 font-semibold">{user.username}</div>
               {onlineUsers.includes(user.id) && (
                 <img
                   className="ml-auto"

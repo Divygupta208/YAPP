@@ -6,10 +6,10 @@ import { createSlice } from "@reduxjs/toolkit";
 //   return async (dispatch) => {
 //     const token = localStorage.getItem("token");
 //     const url = lastMessageId
-//       ? `http://my-api.zapto.org/yapp/api/messages/received?lastMessageId=${lastMessageId}`
+//       ? `http://localhost:3000/api/messages/received?lastMessageId=${lastMessageId}`
 //       : firstMessageId
-//       ? `http://my-api.zapto.org/yapp/api/messages/received?firstMessageId=${firstMessageId}`
-//       : "http://my-api.zapto.org/yapp/api/messages/received";
+//       ? `http://localhost:3000/api/messages/received?firstMessageId=${firstMessageId}`
+//       : "http://localhost:3000/api/messages/received";
 
 //     console.log("calling api");
 

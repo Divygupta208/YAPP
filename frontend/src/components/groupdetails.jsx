@@ -18,7 +18,7 @@ const GroupDetails = ({ groupId, onClose }) => {
 
       try {
         const response = await fetch(
-          `http://my-api.zapto.org/yapp/api/groups/${groupId}/details`,
+          `http://localhost:3000/api/groups/${groupId}/details`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -45,9 +45,7 @@ const GroupDetails = ({ groupId, onClose }) => {
       const token = localStorage.getItem("token");
 
       try {
-        const response = await fetch(
-          "http://my-api.zapto.org/yapp/api/user/allusers"
-        );
+        const response = await fetch("http://localhost:3000/api/user/allusers");
         const users = await response.json();
         console.log("users", users);
         setAvailableUsers(users.data);
@@ -64,7 +62,7 @@ const GroupDetails = ({ groupId, onClose }) => {
 
     try {
       const response = await fetch(
-        `http://my-api.zapto.org/yapp/api/groups/${groupId}/add-users`,
+        `http://localhost:3000/api/groups/${groupId}/add-users`,
         {
           method: "POST",
           headers: {
@@ -89,7 +87,7 @@ const GroupDetails = ({ groupId, onClose }) => {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://my-api.zapto.org/yapp/api/groups/${groupId}/remove-member`,
+        `http://localhost:3000/api/groups/${groupId}/remove-member`,
         {
           method: "DELETE",
           headers: {
@@ -111,7 +109,7 @@ const GroupDetails = ({ groupId, onClose }) => {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://my-api.zapto.org/yapp/api/groups/${groupId}/update-member-role`,
+        `http://localhost:3000/api/groups/${groupId}/update-member-role`,
         {
           method: "PUT",
           headers: {
@@ -138,7 +136,7 @@ const GroupDetails = ({ groupId, onClose }) => {
 
     try {
       const response = await fetch(
-        `http://my-api.zapto.org/yapp/api/groups/${groupId}/update`,
+        `http://localhost:3000/api/groups/${groupId}/update`,
         {
           method: "PATCH",
           headers: {
