@@ -8,7 +8,13 @@ import io from "socket.io-client";
 import { jwtDecode } from "jwt-decode";
 import ChatInput from "./chatinput";
 
-const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
+const ChatWindow = ({
+  selectedChat,
+  onlineUsers,
+  setOnlineUsers,
+  fetchUsers,
+  fetchUserGroups,
+}) => {
   const dispatch = useDispatch();
   const messages = useSelector((state) => state.chat.messages);
   const [message, setMessage] = useState("");
@@ -21,7 +27,7 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
   const currentUserId = token ? jwtDecode(token).userId : null;
 
   useEffect(() => {
-    const newSocket = io("http://localhost:3000");
+    const newSocket = io("http://my-api.zapto.org/yapp");
     setSocket(newSocket);
 
     if (currentUserId) {
@@ -50,8 +56,8 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
     const fetchMessages = async () => {
       const token = localStorage.getItem("token");
       const url = selectedChat.username
-        ? `http://localhost:3000/api/messages/user/${selectedChat.id}`
-        : `http://localhost:3000/api/messages/group/${selectedChat.id}`;
+        ? `http://my-api.zapto.org/yapp/api/messages/user/${selectedChat.id}`
+        : `http://my-api.zapto.org/yapp/api/messages/group/${selectedChat.id}`;
 
       try {
         const response = await fetch(url, {
@@ -123,7 +129,7 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
         // Send message and attachment as JSON
         try {
           const response = await fetch(
-            "http://localhost:3000/api/messages/send",
+            "http://my-api.zapto.org/yapp/api/messages/send",
             {
               method: "POST",
               headers: {
@@ -167,7 +173,7 @@ const ChatWindow = ({ selectedChat, onlineUsers, setOnlineUsers }) => {
 
       try {
         const response = await fetch(
-          "http://localhost:3000/api/messages/send",
+          "http://my-api.zapto.org/yapp/api/messages/send",
           {
             method: "POST",
             headers: {

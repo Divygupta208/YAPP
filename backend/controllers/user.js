@@ -5,6 +5,8 @@ const sequelize = require("../util/database");
 const jwt = require("jsonwebtoken");
 const SibApiV3Sdk = require("sib-api-v3-sdk");
 const ForgotPasswordRequest = require("../models/forgot-password");
+const Message = require("../models/message");
+const { Sequelize } = require("sequelize");
 
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 const apiKey = SibApiV3Sdk.ApiClient.instance.authentications["api-key"];
@@ -252,20 +254,56 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-exports.getAllUsers = async (req, res, next) => {
+exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.findAll();
+    const currentUserId = req.user.id;
 
-    res.status(200).json({
-      success: true,
-      data: users,
+    console.log(currentUserId);
+
+    const users = await User.findAll({
+      attributes: ["id", "username", "profilePicture", "bio"],
+      where: {
+        id: { [Sequelize.Op.ne]: currentUserId },
+      },
     });
+
+    const lastMessages = await Message.findAll({
+      where: {
+        [Sequelize.Op.or]: [
+          { userId: currentUserId },
+          { receiverId: currentUserId },
+        ],
+      },
+      attributes: ["userId", "receiverId", "content", "createdAt"],
+      order: [["createdAt", "DESC"]],
+    });
+
+    const messageMap = new Map();
+
+    lastMessages.forEach((message) => {
+      const otherUserId =
+        message.userId === currentUserId ? message.receiverId : message.userId;
+
+      if (!messageMap.has(otherUserId)) {
+        messageMap.set(otherUserId, message);
+      }
+    });
+
+    const usersWithLastMessage = users.map((user) => {
+      const lastMessage = messageMap.get(user.id) || null;
+      return {
+        id: user.id,
+        username: user.username,
+        profilePicture: user.profilePicture || "/default-avatar.svg",
+        bio: user.bio || "",
+        lastMessage: lastMessage?.content || "No messages yet",
+        lastMessageTimestamp: lastMessage?.createdAt || null,
+      };
+    });
+
+    res.status(200).json({ data: usersWithLastMessage });
   } catch (error) {
     console.error("Error fetching users:", error);
-    res.status(500).json({
-      success: false,
-      message: "An error occurred while fetching users.",
-      error: error.message,
-    });
+    res.status(500).json({ error: "Failed to fetch users" });
   }
 };

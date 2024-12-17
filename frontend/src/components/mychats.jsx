@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import GroupCreationModal from "./groupmodal";
 import ChatWindow from "./chatwindow";
 import { jwtDecode } from "jwt-decode";
+import { useDispatch } from "react-redux";
 
 const MyChats = () => {
   const [search, setSearch] = useState("");
@@ -12,50 +13,55 @@ const MyChats = () => {
   const [groups, setGroups] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState([]);
-
   const token = localStorage.getItem("token");
   const currentUserId = token ? jwtDecode(token).userId : null;
 
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch(
+        "http://my-api.zapto.org/yapp/api/user/allusers",
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const data = await response.json();
+
+      const filteredUsers = data.data
+        .filter((user) => user.id !== Number(currentUserId))
+        .map((user) => ({
+          ...user,
+          lastMessage: user.lastMessage || "No messages yet",
+        }));
+      setUsers(filteredUsers);
+      setFilteredChats(filteredUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  const fetchUserGroups = async () => {
+    try {
+      const response = await fetch(
+        "http://my-api.zapto.org/yapp/api/groups/usergroups",
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const data = await response.json();
+      const formattedGroups = data?.map((group) => ({
+        ...group,
+        lastMessage: group.lastMessage || "No messages yet",
+      }));
+      setGroups(formattedGroups);
+    } catch (error) {
+      console.error("Error fetching user groups:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/api/user/allusers");
-        if (!response.ok) {
-          throw new Error("Failed to fetch users");
-        }
-        const data = await response.json();
-        const filteredUsers = data.data.filter(
-          (user) => user.id !== Number(currentUserId)
-        );
-        setUsers(filteredUsers);
-        setFilteredChats(filteredUsers);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-
-    const fetchUserGroups = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost:3000/api/groups/usergroups",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch user groups");
-        }
-        const data = await response.json();
-        console.log(data);
-        setGroups(data);
-      } catch (error) {
-        console.error("Error fetching user groups:", error);
-      }
-    };
-
     fetchUsers();
     fetchUserGroups();
   }, [currentUserId]);
@@ -69,26 +75,30 @@ const MyChats = () => {
   }, [search, users]);
 
   const handleCreateGroup = async (groupName, groupDesc, selectedUsers) => {
-    const response = await fetch("http://localhost:3000/api/groups/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        name: groupName,
-        description: groupDesc,
-        users: selectedUsers,
-      }),
-    });
-
-    const newGroup = await response.json();
-    setGroups((prevGroups) => [...prevGroups, newGroup]);
+    try {
+      const response = await fetch(
+        "http://my-api.zapto.org/yapp/api/groups/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: groupName,
+            description: groupDesc,
+            users: selectedUsers,
+          }),
+        }
+      );
+      const newGroup = await response.json();
+      setGroups((prevGroups) => [...prevGroups, newGroup]);
+    } catch (error) {
+      console.error("Error creating group:", error);
+    }
   };
 
-  const handleChatClick = (chat) => {
-    setSelectedChat(chat);
-  };
+  const handleChatClick = (chat) => setSelectedChat(chat);
 
   return (
     <div className="flex h-[90vh] p-14">
@@ -110,7 +120,7 @@ const MyChats = () => {
         </button>
 
         <div className="overflow-y-auto">
-          {/* Display filtered users */}
+          {/* Users */}
           {filteredChats.map((user) => (
             <motion.div
               key={user.id}
@@ -128,18 +138,23 @@ const MyChats = () => {
               ) : (
                 <img src="/default-avatar.svg" width={12} />
               )}
-              <div className="mt-2 font-semibold">{user.username}</div>
+              <div className="flex flex-col">
+                <div className="font-semibold">{user.username}</div>
+                <div className="text-gray-500 text-sm truncate">
+                  {user.lastMessage}
+                </div>
+              </div>
               {onlineUsers.includes(user.id) && (
                 <img
                   className="ml-auto"
-                  src="public\dot-small-svgrepo-com.svg"
+                  src="/dot-small-svgrepo-com.svg"
                   width={30}
                 />
               )}
             </motion.div>
           ))}
 
-          {/* Display created groups */}
+          {/* Groups */}
           {groups.map((group) => (
             <motion.div
               key={group.id}
@@ -150,11 +165,16 @@ const MyChats = () => {
               transition={{ delay: group.id * 0.1 }}
             >
               {group.profile ? (
-                <img src={group.profile} />
+                <img src={group.profile} className="w-10 h-10 rounded-full" />
               ) : (
                 <img src="/group-svgrepo-com.svg" width={18} />
               )}
-              {group.name}
+              <div className="flex flex-col">
+                <div className="font-semibold">{group.name}</div>
+                <div className="text-gray-500 text-sm truncate">
+                  {group.lastMessage}
+                </div>
+              </div>
             </motion.div>
           ))}
         </div>

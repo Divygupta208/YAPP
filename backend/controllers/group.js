@@ -3,6 +3,7 @@ const Group = require("../models/group");
 const Invitation = require("../models/invitation");
 const User = require("../models/user");
 const UserGroup = require("../models/user-group");
+const Message = require("../models/message");
 
 exports.postCreateGroup = async (req, res, next) => {
   const { name, description, users } = req.body;
@@ -32,22 +33,46 @@ exports.getUserGroups = async (req, res) => {
   try {
     const userId = req.user.id;
 
+    // Fetch all user groups for the user
     const userGroups = await UserGroup.findAll({
-      where: { userId: userId },
-      include: {
-        model: Group,
-        attributes: ["id", "name", "description"],
-      },
+      where: { userId },
+      attributes: ["groupId"], // Only fetch the groupId to use for further queries
     });
 
-    const groups = userGroups.map((userGroup) =>
-      userGroup.Group.get({ plain: true })
-    );
+    const groupIds = userGroups.map((userGroup) => userGroup.groupId);
 
-    res.status(200).json(groups);
+    // Fetch group details
+    const groups = await Group.findAll({
+      where: { id: groupIds },
+      attributes: ["id", "name", "description"],
+    });
+
+    // Fetch the latest message for each group
+    const messages = await Message.findAll({
+      where: { groupId: groupIds },
+      attributes: ["content", "createdAt", "groupId"],
+      order: [["createdAt", "DESC"]],
+      limit: groupIds.length, // Fetch latest messages for the groups
+    });
+
+    // Map the groups and merge data
+    const groupDetails = groups.map((group) => {
+      const latestMessage = messages.find(
+        (message) => message.groupId === group.id
+      );
+      return {
+        id: group.id,
+        name: group.name,
+        description: group.description,
+        lastMessage: latestMessage ? latestMessage.content : "No messages yet",
+        lastMessageTimestamp: latestMessage ? latestMessage.createdAt : null,
+      };
+    });
+
+    res.status(200).json(groupDetails);
   } catch (error) {
     console.error("Error fetching user groups:", error);
-    res.status(500).json({ error: "Error fetching groups" });
+    res.status(500).json({ error: "Failed to fetch user groups" });
   }
 };
 

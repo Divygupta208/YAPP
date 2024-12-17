@@ -53,7 +53,7 @@ const Home = () => {
 
     try {
       const response = await axios.patch(
-        `http://localhost:3000/api/user/update/${userId}`,
+        `http://my-api.zapto.org/yapp/api/user/update/${userId}`,
         formData,
         {
           headers: {

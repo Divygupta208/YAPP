@@ -6,6 +6,7 @@ const {
   upload,
   uploadToS3Middleware,
 } = require("../middlewares/uploadMiddlerware");
+const authenticateUser = require("../middlewares/authUser");
 
 router.post("/signup", userController.postAddUser);
 router.post("/login", userController.postLoginUser);
@@ -17,5 +18,5 @@ router.patch(
 );
 router.post("/forgotpassword", userController.postForgotPassword);
 router.post("/resetpassword/:id", userController.postResetPassword);
-router.get("/allusers", userController.getAllUsers);
+router.get("/allusers", authenticateUser, userController.getAllUsers);
 module.exports = router;
