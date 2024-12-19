@@ -18,7 +18,7 @@ const GroupDetails = ({ groupId, onClose }) => {
 
       try {
         const response = await fetch(
-          `http://my-api.zapto.org/yapp/api/groups/${groupId}/details`,
+          `https://my-api.zapto.org/yapp/api/groups/${groupId}/details`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -46,7 +46,7 @@ const GroupDetails = ({ groupId, onClose }) => {
 
       try {
         const response = await fetch(
-          "http://my-api.zapto.org/yapp/api/user/allusers"
+          "https://my-api.zapto.org/yapp/api/user/allusers"
         );
         const users = await response.json();
         console.log("users", users);
@@ -64,7 +64,7 @@ const GroupDetails = ({ groupId, onClose }) => {
 
     try {
       const response = await fetch(
-        `http://my-api.zapto.org/yapp/api/groups/${groupId}/add-users`,
+        `https://my-api.zapto.org/yapp/api/groups/${groupId}/add-users`,
         {
           method: "POST",
           headers: {
@@ -89,7 +89,7 @@ const GroupDetails = ({ groupId, onClose }) => {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://my-api.zapto.org/yapp/api/groups/${groupId}/remove-member`,
+        `https://my-api.zapto.org/yapp/api/groups/${groupId}/remove-member`,
         {
           method: "DELETE",
           headers: {
@@ -111,7 +111,7 @@ const GroupDetails = ({ groupId, onClose }) => {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://my-api.zapto.org/yapp/api/groups/${groupId}/update-member-role`,
+        `https://my-api.zapto.org/yapp/api/groups/${groupId}/update-member-role`,
         {
           method: "PUT",
           headers: {
@@ -138,7 +138,7 @@ const GroupDetails = ({ groupId, onClose }) => {
 
     try {
       const response = await fetch(
-        `http://my-api.zapto.org/yapp/api/groups/${groupId}/update`,
+        `https://my-api.zapto.org/yapp/api/groups/${groupId}/update`,
         {
           method: "PATCH",
           headers: {

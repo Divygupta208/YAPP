@@ -27,7 +27,7 @@ const ChatWindow = ({
   const currentUserId = token ? jwtDecode(token).userId : null;
 
   useEffect(() => {
-    const newSocket = io("http://my-api.zapto.org/yapp");
+    const newSocket = io("https://my-api.zapto.org/yapp");
     setSocket(newSocket);
 
     if (currentUserId) {
@@ -56,8 +56,8 @@ const ChatWindow = ({
     const fetchMessages = async () => {
       const token = localStorage.getItem("token");
       const url = selectedChat.username
-        ? `http://my-api.zapto.org/yapp/api/messages/user/${selectedChat.id}`
-        : `http://my-api.zapto.org/yapp/api/messages/group/${selectedChat.id}`;
+        ? `https://my-api.zapto.org/yapp/api/messages/user/${selectedChat.id}`
+        : `https://my-api.zapto.org/yapp/api/messages/group/${selectedChat.id}`;
 
       try {
         const response = await fetch(url, {
@@ -129,7 +129,7 @@ const ChatWindow = ({
         // Send message and attachment as JSON
         try {
           const response = await fetch(
-            "http://my-api.zapto.org/yapp/api/messages/send",
+            "https://my-api.zapto.org/yapp/api/messages/send",
             {
               method: "POST",
               headers: {
@@ -173,7 +173,7 @@ const ChatWindow = ({
 
       try {
         const response = await fetch(
-          "http://my-api.zapto.org/yapp/api/messages/send",
+          "https://my-api.zapto.org/yapp/api/messages/send",
           {
             method: "POST",
             headers: {

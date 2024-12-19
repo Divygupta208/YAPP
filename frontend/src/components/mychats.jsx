@@ -19,7 +19,7 @@ const MyChats = () => {
   const fetchUsers = async () => {
     try {
       const response = await fetch(
-        "http://my-api.zapto.org/yapp/api/user/allusers",
+        "https://my-api.zapto.org/yapp/api/user/allusers",
         {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
@@ -43,7 +43,7 @@ const MyChats = () => {
   const fetchUserGroups = async () => {
     try {
       const response = await fetch(
-        "http://my-api.zapto.org/yapp/api/groups/usergroups",
+        "https://my-api.zapto.org/yapp/api/groups/usergroups",
         {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
@@ -77,7 +77,7 @@ const MyChats = () => {
   const handleCreateGroup = async (groupName, groupDesc, selectedUsers) => {
     try {
       const response = await fetch(
-        "http://my-api.zapto.org/yapp/api/groups/create",
+        "https://my-api.zapto.org/yapp/api/groups/create",
         {
           method: "POST",
           headers: {
