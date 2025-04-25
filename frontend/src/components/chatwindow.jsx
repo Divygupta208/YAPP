@@ -27,7 +27,7 @@ const ChatWindow = ({
   const currentUserId = token ? jwtDecode(token).userId : null;
 
   useEffect(() => {
-    const newSocket = io("https://my-api.zapto.org/yapp/");
+    const newSocket = io("https://my-api.zapto.org/");
     setSocket(newSocket);
 
     if (currentUserId) {
